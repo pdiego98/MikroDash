@@ -528,6 +528,8 @@ func (cn *conn) dispatch(in inbound) {
 		cn.packagesCheck()
 	case "packages:upgrade":
 		cn.packagesUpgrade(in.Data)
+	case "fleet:upgrade":
+		cn.fleetUpgrade(in.Data)
 	case "packages:apply":
 		cn.packagesApply(in.Data)
 	case "files:fetch":

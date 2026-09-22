@@ -91,6 +91,7 @@ var All = []Page{
 	{Key: "vlans", Title: "VLANs", Collector: "vlans"},
 	{Key: "wan", Title: "WAN", Collector: "wan"},
 	{Key: "packages", Title: "Packages", Collector: "packages"},
+	{Key: "fleet-upgrade", Title: "Fleet Upgrade"},
 	{Key: "routing", Title: "Routing", Collector: "routing"},
 	// The NetWatch page (#97). Its collector also feeds the Dashboard card.
 	{Key: "netwatch", Title: "NetWatch", Collector: "netwatch"},

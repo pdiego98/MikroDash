@@ -107,6 +107,11 @@
       "settingsKey": "pagePackages"
     },
     {
+      "key": "fleet-upgrade",
+      "title": "Fleet Upgrade",
+      "settingsKey": null
+    },
+    {
       "key": "devices",
       "title": "Devices",
       "settingsKey": "pageDevices"
@@ -186,6 +191,7 @@
     "firewall",
     "logs",
     "packages",
+    "fleet-upgrade",
     "queues",
     "users",
     "audit-trail"
@@ -215,6 +221,7 @@
     "users",
     "logs",
     "packages",
+    "fleet-upgrade",
     "devices",
     "config-management",
     "tools",

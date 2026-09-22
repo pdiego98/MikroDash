@@ -3,6 +3,8 @@ package server
 import (
 	"errors"
 	"time"
+
+	"mikrodash/internal/session"
 )
 
 // routerWritesPerMinute bounds how fast one user may change one router (#97).
@@ -33,16 +35,20 @@ func writeLimitKey(username, routerID string) string {
 // A Server built without a limiter (a test that does not concern writes) is not
 // limited; `New` always builds one.
 func (cn *conn) inWriteQueue(fn func() error) error {
+	return cn.inWriteQueueFor(cn.routerID, cn.rsession, fn)
+}
+
+func (cn *conn) inWriteQueueFor(routerID string, rs *session.Session, fn func() error) error {
 	if l := cn.srv.writeLimit; l != nil {
 		name := ""
 		if cn.sess != nil {
 			name = cn.sess.Username
 		}
-		if ok, _, _ := l.take(writeLimitKey(name, cn.routerID)); !ok {
+		if ok, _, _ := l.take(writeLimitKey(name, routerID)); !ok {
 			return errWriteRateLimited
 		}
 	}
-	return cn.rsession.InWriteQueue(fn)
+	return rs.InWriteQueue(fn)
 }
 
 func newWriteLimiter() *rateLimiter {

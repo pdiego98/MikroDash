@@ -212,6 +212,7 @@ export interface HandEvents {
     poll: Record<string, number>;
   };
   'collection:status': { routerId: string; dormant: string[] };
+  'fleet:upgrade:result': { routerId?: string; routerName?: string; code?: string; action?: string; ok?: boolean; latest?: string; rebooting?: boolean };
   // `ts` is always sent here, where ConnsPayload's own is omitempty.
   'conn:country-data': Pick<ConnsPayload, 'countryDests' | 'countryPorts'> & { ts: number };
   'conn:source-data': Pick<ConnsPayload, 'sourceDests' | 'sourcePorts'> & { ts: number };

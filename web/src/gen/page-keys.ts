@@ -32,6 +32,7 @@ export const PAGE_KEYS: readonly string[] = [
   "firewall",
   "logs",
   "packages",
+  "fleet-upgrade",
   "queues",
   "users",
   "audit-trail"
@@ -71,6 +72,7 @@ export const ALL_NAV_PAGES: readonly string[] = [
   "users",
   "logs",
   "packages",
+  "fleet-upgrade",
   "devices",
   "config-management",
   "tools",

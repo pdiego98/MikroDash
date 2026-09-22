@@ -24,6 +24,7 @@ export const PAGES: readonly Page[] = [
   { key: "vlans", title: "VLANs", path: "vlans" },
   { key: "wan", title: "WAN", path: "wan" },
   { key: "packages", title: "Packages", path: "packages" },
+  { key: "fleet-upgrade", title: "Fleet Upgrade", path: "fleet-upgrade" },
   { key: "routing", title: "Routing", path: "routing" },
   { key: "netwatch", title: "NetWatch", path: "netwatch" },
   { key: "dhcp", title: "DHCP", path: "dhcp" },

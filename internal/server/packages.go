@@ -33,6 +33,7 @@ import (
 	"mikrodash/internal/collect"
 	"mikrodash/internal/routeros"
 	"mikrodash/internal/safe"
+	"mikrodash/internal/session"
 )
 
 // pkgScheduleCmd maps the browser's verb to a RouterOS menu. A verb that is not
@@ -55,6 +56,11 @@ type pkgApplyReq struct {
 
 type pkgAutoUpgradeReq struct {
 	On bool `json:"on"`
+}
+
+type fleetUpgradeReq struct {
+	RouterIDs []string `json:"routerIds"`
+	Confirm   string   `json:"confirm"`
 }
 
 func (cn *conn) pkgErr(code string, extra map[string]any) {
@@ -318,29 +324,71 @@ func (cn *conn) packagesUpgrade(raw json.RawMessage) {
 	EvPackagesOk.Send(cn.srv.hub, cn.c, body)
 }
 
+// fleetUpgrade upgrades selected routers without changing the browser's active
+// router. Each target is acquired and released independently, so one offline
+// router cannot prevent the rest of the batch from being attempted.
+func (cn *conn) fleetUpgrade(raw json.RawMessage) {
+	var req fleetUpgradeReq
+	if json.Unmarshal(raw, &req) != nil || len(req.RouterIDs) == 0 || len(req.RouterIDs) > 200 {
+		EvFleetUpgradeResult.Send(cn.srv.hub, cn.c, map[string]any{"code": "invalid-request"})
+		return
+	}
+	if !strings.EqualFold(strings.TrimSpace(req.Confirm), "UPGRADE") {
+		EvFleetUpgradeResult.Send(cn.srv.hub, cn.c, map[string]any{"code": "confirm-mismatch"})
+		return
+	}
+
+	go func() {
+		for _, id := range req.RouterIDs {
+			rs, err := cn.srv.sessions.Acquire(id)
+			if err != nil {
+				EvFleetUpgradeResult.Send(cn.srv.hub, cn.c, map[string]any{
+					"routerId": id, "code": "unavailable"})
+				continue
+			}
+			out := cn.runRouterOSUpgradeFor(id, rs, rs.Label, "fleet")
+			cn.srv.sessions.Release(id)
+			body := map[string]any{"routerId": id, "routerName": rs.Label, "action": out.Action}
+			if out.Code != "" {
+				body["code"] = out.Code
+			} else {
+				body["ok"] = true
+			}
+			for k, v := range out.Detail {
+				body[k] = v
+			}
+			EvFleetUpgradeResult.Send(cn.srv.hub, cn.c, body)
+		}
+	}()
+}
+
 // runRouterOSUpgrade downloads and installs the RouterOS update the router has
 // found, which REBOOTS it, and reports what happened. Split out for
 // `run_action` (MikroMCP's manage_upgrade), as runFirmwareUpgrade is; the
 // page's handler above wraps it. `confirm` is the router's name typed back.
 func (cn *conn) runRouterOSUpgrade(confirm, via string) writeOutcome {
-	if cn.routerID == "" || cn.rsession == nil {
+	return cn.runRouterOSUpgradeFor(cn.routerID, cn.rsession, confirm, via)
+}
+
+func (cn *conn) runRouterOSUpgradeFor(routerID string, rs *session.Session, confirm, via string) writeOutcome {
+	if routerID == "" || rs == nil {
 		return writeOutcome{Code: "unavailable"}
 	}
-	if !cn.canPage("packages", "write") {
+	if !cn.canPageIn(connScope{sess: cn.sess, routerID: routerID, rs: rs}, "packages", "write") {
 		cn.recorder().Denied(audit.Event{Action: "package.upgrade", TargetType: "router",
-			TargetID: cn.routerID, RouterID: cn.routerID})
+			TargetID: routerID, RouterID: routerID})
 		return writeOutcome{Code: "denied"}
 	}
 	// The same second gate `packagesApply` uses: prove the operator knows which
 	// router this is, case-insensitively and trimmed. It is not a typing test.
-	name := cn.rsession.Label
+	name := rs.Label
 	if name == "" || !strings.EqualFold(strings.TrimSpace(confirm), name) {
 		return writeOutcome{Code: "confirm-mismatch", Name: name, Detail: map[string]any{"routerName": name}}
 	}
 
 	var out writeOutcome
-	err := cn.inWriteQueue(func() error {
-		rows, rerr := cn.rsession.Exec(routeros.Cmd{Path: "/system/package/update/print"})
+	err := cn.inWriteQueueFor(routerID, rs, func() error {
+		rows, rerr := rs.Exec(routeros.Cmd{Path: "/system/package/update/print"})
 		if rerr != nil {
 			return rerr
 		}
@@ -371,12 +419,12 @@ func (cn *conn) runRouterOSUpgrade(confirm, via string) writeOutcome {
 		}
 		cn.recorder().Record(audit.Event{
 			Action: "package.upgrade", TargetType: "router",
-			TargetID: cn.routerID, TargetName: name, RouterID: cn.routerID,
+			TargetID: routerID, TargetName: name, RouterID: routerID,
 			Extra: extra,
 			Note:  "downloaded the RouterOS update and rebooted the router",
 		})
 
-		if _, werr := cn.rsession.Exec(routeros.Cmd{Path: "/system/package/update/install"}); werr != nil {
+		if _, werr := rs.Exec(routeros.Cmd{Path: "/system/package/update/install"}); werr != nil {
 			return werr
 		}
 		out = writeOutcome{Action: "upgrade", Name: name, Detail: map[string]any{"latest": latest}}

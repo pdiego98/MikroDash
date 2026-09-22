@@ -1,0 +1,30 @@
+<div class="page-view" id="page-fleet-upgrade">
+  <div class="container-fluid px-0" style="width:100%">
+    <div class="card">
+      <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-2">
+          <h3 class="card-title mb-0">Fleet Upgrade</h3>
+          <span id="fleetUpgradeBadge" class="card-badge">0</span>
+          <span id="fleetUpgradeStatus" class="muted-note"></span>
+        </div>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <button id="fleetSelectAll" class="btn btn-sm btn-outline-secondary" type="button">Select all</button>
+          <button id="fleetUpgradeBtn" class="btn btn-sm btn-danger" type="button" disabled>Upgrade selected</button>
+        </div>
+      </div>
+      <div class="card-body border-bottom">
+        <div class="text-muted" style="font-size:.8rem">Each router is checked immediately before its update. Routers reboot during the upgrade and may be unreachable for several minutes.</div>
+        <div class="d-flex align-items-center gap-2 mt-3 flex-wrap">
+          <label for="fleetUpgradeConfirm" class="text-muted" style="font-size:.78rem">Type UPGRADE to confirm</label>
+          <input id="fleetUpgradeConfirm" class="form-control form-control-sm" style="max-width:13rem" autocomplete="off" spellcheck="false" placeholder="UPGRADE" />
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-vcenter mb-0">
+          <thead><tr><th style="width:3rem"></th><th>Router</th><th>Host</th><th>Status</th><th>Result</th></tr></thead>
+          <tbody id="fleetUpgradeRows"><tr><td colspan="5" class="empty-state">Loading registered routers&hellip;</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

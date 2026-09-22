@@ -27,6 +27,7 @@ import { initBridgesPage } from './pages/bridges';
 import { initVlansPage, resetVlansPage } from './pages/vlans';
 import { initWanPage } from './pages/wan';
 import { initPackagesPage } from './pages/packages';
+import { initFleetUpgradePage } from './pages/fleet-upgrade';
 import { initRoutingPage } from './pages/routing';
 import { initNetwatchPage } from './pages/netwatch';
 import { initAiAgentPage } from './pages/ai-agent';
@@ -597,6 +598,7 @@ async function main(): Promise<void> {
   initVlansPage(socket, pageVisible);
   initWanPage(socket, pageVisible);
   initPackagesPage(socket, pageVisible);
+  initFleetUpgradePage(socket, pageVisible);
   initRoutingPage(socket, pageVisible);
   initNetwatchPage(socket, pageVisible);
   initAiAgentPage(socket, pageVisible);

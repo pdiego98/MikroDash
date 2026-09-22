@@ -66,6 +66,7 @@ var (
 	EvBackupsRestoring   = hub.Declare[map[string]any]("backups:restoring")
 	EvBackupsRunning     = hub.Declare[map[string]any]("backups:running")
 	EvCollectionConfig   = hub.Declare[map[string]any]("collection:config")
+	EvFleetUpgradeResult = hub.Declare[map[string]any]("fleet:upgrade:result")
 	EvPackagesApplying   = hub.Declare[map[string]any]("packages:applying")
 	EvPackagesCaps       = hub.Declare[map[string]any]("packages:caps")
 	EvPackagesError      = hub.Declare[map[string]any]("packages:error")
